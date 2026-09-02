@@ -5,8 +5,8 @@ import {
   BarChart, Bar, LineChart, Line, AreaChart, Area, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
-import { BarChart3, LineChart as LineIcon, AreaChart as AreaIcon, PieChart as PieIcon, Sliders, Sparkles, ShieldCheck, RefreshCw } from 'lucide-react';
-import { useAppStore } from '../lib/store';
+import { BarChart3, LineChart as LineIcon, AreaChart as AreaIcon, PieChart as PieIcon, Sliders, Sparkles, ShieldCheck, RefreshCw, Layers } from 'lucide-react';
+import { useAppStore, DATASET_PRESETS } from '../lib/store';
 
 const CHART_TYPES = [
   { id: 'bar', label: 'Bar', icon: BarChart3 },
@@ -26,6 +26,8 @@ export default function ChartCanvas() {
   const runAudit = useAppStore((state) => state.runAudit);
   const isAuditing = useAppStore((state) => state.isAuditing);
   const auditHealthScore = useAppStore((state) => state.auditHealthScore);
+  const activePresetId = useAppStore((state) => state.activePresetId);
+  const applyPreset = useAppStore((state) => state.applyPreset);
 
   const [selectedType, setSelectedType] = useState<'bar' | 'line' | 'area' | 'pie'>('bar');
   const [customX, setCustomX] = useState<string>('');
@@ -49,16 +51,35 @@ export default function ChartCanvas() {
     if (activeChart?.yAxisKeys?.[0]) setCustomY(activeChart.yAxisKeys[0]);
   }, [activeChart]);
 
-  if (!chartData || chartData.length === 0) {
-    return (
-      <div className="p-8 bg-slate-900 border border-slate-800 rounded-xl text-center text-slate-500 font-mono text-xs">
-        No dataset loaded into visualization canvas.
-      </div>
-    );
-  }
-
   return (
     <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl space-y-4">
+      {/* Clickable Preset Quick Selector */}
+      <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800/80 space-y-2 font-mono">
+        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-300">
+          <Layers className="w-3.5 h-3.5 text-indigo-400" />
+          <span>Clickable Dataset Presets:</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {DATASET_PRESETS.map((preset) => {
+            const isActive = activePresetId === preset.id;
+            return (
+              <button
+                key={preset.id}
+                onClick={() => applyPreset(preset.id)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  isActive
+                    ? 'bg-gradient-to-r from-indigo-600 to-pink-600 text-white font-bold ring-2 ring-indigo-400 shadow-md shadow-indigo-500/30 scale-105'
+                    : 'bg-slate-900 text-slate-300 border border-slate-800 hover:bg-slate-800 hover:text-white hover:border-slate-700'
+                }`}
+                title={preset.description}
+              >
+                <span>{preset.name}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Top Header Controls */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
         <div>
@@ -76,7 +97,7 @@ export default function ChartCanvas() {
           <button
             onClick={() => runAudit()}
             disabled={isAuditing}
-            className="px-3 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-2 bg-emerald-950 text-emerald-300 border border-emerald-800/80 hover:bg-emerald-900 transition-all disabled:opacity-50"
+            className="px-3 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-2 bg-emerald-950 text-emerald-300 border border-emerald-800/80 hover:bg-emerald-900 transition-all disabled:opacity-50 cursor-pointer"
           >
             {isAuditing ? (
               <RefreshCw className="w-3.5 h-3.5 animate-spin text-emerald-400" />
@@ -100,7 +121,7 @@ export default function ChartCanvas() {
                 <button
                   key={type.id}
                   onClick={() => setSelectedType(type.id as any)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-mono flex items-center gap-1.5 transition-all ${
+                  className={`px-2.5 py-1 rounded-md text-xs font-mono flex items-center gap-1.5 transition-all cursor-pointer ${
                     isActive
                       ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold shadow-lg shadow-indigo-500/25'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
