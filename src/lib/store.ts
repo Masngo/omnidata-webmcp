@@ -1,5 +1,13 @@
 import { create } from 'zustand';
 
+export interface LogEntry {
+  id?: string;
+  toolName: string;
+  status: 'success' | 'error' | 'info' | 'warn';
+  message: string;
+  timestamp?: string;
+}
+
 export interface AuditResult {
   column: string;
   type: string;
@@ -11,6 +19,7 @@ export interface AuditResult {
 
 export interface AppState {
   dataset: Record<string, any>[];
+  filteredData: Record<string, any>[] | null;
   activeChart: {
     title?: string;
     chartType?: 'bar' | 'line' | 'area' | 'pie';
@@ -21,7 +30,11 @@ export interface AppState {
   auditResults: AuditResult[] | null;
   isAuditing: boolean;
   auditHealthScore: number | null;
+  logs: LogEntry[];
+
   setDataset: (data: Record<string, any>[]) => void;
+  addLog: (log: Omit<LogEntry, 'id' | 'timestamp'> & { id?: string; timestamp?: string }) => void;
+  clearFilter: () => void;
   runAudit: () => Promise<void>;
 }
 
@@ -33,22 +46,39 @@ export const useAppStore = create<AppState>((set, get) => ({
     { category: 'Delta', revenue: 9100, users: 410, conversion: 5.6 },
     { category: 'Epsilon', revenue: 6400, users: 210, conversion: 3.9 }
   ],
+  filteredData: null,
   activeChart: null,
   auditResults: null,
   isAuditing: false,
   auditHealthScore: null,
+  logs: [],
 
-  setDataset: (data) => set({ dataset: data, auditResults: null, auditHealthScore: null }),
+  setDataset: (data) => set({ dataset: data, filteredData: null, auditResults: null, auditHealthScore: null }),
+
+  addLog: (log) =>
+    set((state) => ({
+      logs: [
+        {
+          id: Math.random().toString(36).substring(2, 9),
+          timestamp: new Date().toLocaleTimeString(),
+          ...log,
+        },
+        ...state.logs,
+      ],
+    })),
+
+  clearFilter: () => set({ filteredData: null }),
 
   runAudit: async () => {
     set({ isAuditing: true });
-    
-    // Simulate async compute delay for realistic feel
+    get().addLog({ toolName: 'audit_engine', status: 'info', message: 'Executing dataset health audit...' });
+
     await new Promise((resolve) => setTimeout(resolve, 600));
 
     const data = get().dataset;
     if (!data || data.length === 0) {
       set({ auditResults: [], isAuditing: false, auditHealthScore: 0 });
+      get().addLog({ toolName: 'audit_engine', status: 'warn', message: 'Audit completed on empty dataset.' });
       return;
     }
 
@@ -94,6 +124,12 @@ export const useAppStore = create<AppState>((set, get) => ({
       auditResults: results,
       isAuditing: false,
       auditHealthScore: avgCompleteness
+    });
+
+    get().addLog({
+      toolName: 'audit_engine',
+      status: 'success',
+      message: `Audit completed successfully. Overall score: ${avgCompleteness}%`
     });
   }
 }));
