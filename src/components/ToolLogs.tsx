@@ -5,7 +5,7 @@ import { Activity, CheckCircle2, AlertCircle, ChevronDown, ChevronRight } from '
 import { useAppStore } from '../lib/store';
 
 export default function ToolLogs() {
-  const toolLogs = useAppStore((state) => state.toolLogs);
+  const toolLogs = useAppStore((state) => state.toolLogs) || [];
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
 
   return (

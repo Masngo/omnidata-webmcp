@@ -2,29 +2,29 @@ import { create } from 'zustand';
 import { ChartConfig, ToolLog } from './types';
 
 interface AppState {
+  isDuckDbReady: boolean;
+  setIsDuckDbReady: (ready: boolean) => void;
   dataset: Record<string, any>[];
   filteredData: Record<string, any>[];
-  activeChart: ChartConfig | null;
-  activeFilter: { column: string; value: string } | null;
-  logs: ToolLog[];
-  isDuckDbReady: boolean;
   setDataset: (data: Record<string, any>[]) => void;
-  setActiveChart: (chart: ChartConfig) => void;
+  activeChart: ChartConfig | null;
+  setActiveChart: (chart: ChartConfig | null) => void;
+  activeFilter: { column: string; value: string } | null;
   setFilter: (column: string, value: string) => void;
   clearFilter: () => void;
+  toolLogs: ToolLog[];
   addLog: (log: Omit<ToolLog, 'timestamp'>) => void;
-  setDuckDbReady: (ready: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
+  isDuckDbReady: false,
+  setIsDuckDbReady: (ready) => set({ isDuckDbReady: ready }),
   dataset: [],
   filteredData: [],
-  activeChart: null,
-  activeFilter: null,
-  logs: [],
-  isDuckDbReady: false,
   setDataset: (data) => set({ dataset: data, filteredData: data }),
+  activeChart: null,
   setActiveChart: (chart) => set({ activeChart: chart }),
+  activeFilter: null,
   setFilter: (column, value) =>
     set((state) => ({
       activeFilter: { column, value },
@@ -33,9 +33,15 @@ export const useAppStore = create<AppState>((set) => ({
       ),
     })),
   clearFilter: () => set((state) => ({ activeFilter: null, filteredData: state.dataset })),
+  toolLogs: [],
   addLog: (log) =>
     set((state) => ({
-      logs: [{ ...log, timestamp: new Date().toLocaleTimeString() }, ...state.logs].slice(0, 20),
+      toolLogs: [
+        {
+          ...log,
+          timestamp: new Date().toLocaleTimeString(),
+        },
+        ...(state.toolLogs || []),
+      ],
     })),
-  setDuckDbReady: (ready) => set({ isDuckDbReady: ready }),
 }));
