@@ -4,6 +4,8 @@ import { ChartConfig, ToolLog } from './types';
 interface AppState {
   isDuckDbReady: boolean;
   setIsDuckDbReady: (ready: boolean) => void;
+  activeDatasetKey: string;
+  setActiveDatasetKey: (key: string) => void;
   dataset: Record<string, any>[];
   filteredData: Record<string, any>[];
   setDataset: (data: Record<string, any>[]) => void;
@@ -19,6 +21,8 @@ interface AppState {
 export const useAppStore = create<AppState>((set) => ({
   isDuckDbReady: false,
   setIsDuckDbReady: (ready) => set({ isDuckDbReady: ready }),
+  activeDatasetKey: 'sales',
+  setActiveDatasetKey: (key) => set({ activeDatasetKey: key }),
   dataset: [],
   filteredData: [],
   setDataset: (data) => set({ dataset: data, filteredData: data }),
