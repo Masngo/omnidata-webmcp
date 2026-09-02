@@ -19,6 +19,14 @@ export default function DataGrid() {
 
   const columns = Object.keys(filteredData[0]);
 
+  const formatCellValue = (val: any, col: string) => {
+    if (val === null || val === undefined) return '';
+    if (col.toLowerCase().includes('date') && typeof val === 'number') {
+      return new Date(val).toISOString().split('T')[0];
+    }
+    return String(val);
+  };
+
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg">
       <div className="p-4 border-b border-slate-800 flex justify-between items-center">
@@ -51,7 +59,9 @@ export default function DataGrid() {
             {filteredData.slice(0, 50).map((row, idx) => (
               <tr key={idx} className="hover:bg-slate-800/40 transition-colors">
                 {columns.map((col) => (
-                  <td key={col} className="px-4 py-2 whitespace-nowrap">{String(row[col] ?? '')}</td>
+                  <td key={col} className="px-4 py-2 whitespace-nowrap">
+                    {formatCellValue(row[col], col)}
+                  </td>
                 ))}
               </tr>
             ))}
