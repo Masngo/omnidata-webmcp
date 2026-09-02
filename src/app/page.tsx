@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import PresetSelector from '@/components/PresetSelector';
-import ChartCanvas from '@/components/ChartCanvas';
-import AuditPanel from '@/components/AuditPanel';
-import DataGrid from '@/components/DataGrid';
-import { useAppStore } from '@/lib/store';
+import PresetSelector from '../components/PresetSelector';
+import ChartCanvas from '../components/ChartCanvas';
+import AuditPanel from '../components/AuditPanel';
+import DataGrid from '../components/DataGrid';
+import { useAppStore } from '../lib/store';
 import { Terminal, Activity } from 'lucide-react';
 
 export default function Home() {
