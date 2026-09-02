@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import Header from '../components/Header';
 import AgentCopilot from '../components/AgentCopilot';
+import DataUploader from '../components/DataUploader';
+import DataQualityAudit from '../components/DataQualityAudit';
 import ChartCanvas from '../components/ChartCanvas';
 import DataGrid from '../components/DataGrid';
 import SqlConsole from '../components/SqlConsole';
@@ -72,56 +74,57 @@ export default function Page() {
     <main className="min-h-screen bg-slate-950 text-slate-100 p-4 md:p-8 space-y-6">
       <Header />
 
-      {/* Dynamic Interactive Preset Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-900 border border-slate-800 rounded-xl shadow-lg">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-slate-400 font-mono flex items-center gap-1.5 px-1 font-medium">
-            <Database className="w-4 h-4 text-blue-400" />
-            Switch Preset Dataset:
-          </span>
-          <div className="flex flex-wrap gap-2">
-            {Object.entries(SAMPLE_DATASETS).map(([key, item]) => {
-              const isActive = activeDatasetKey === key;
-              return (
-                <div key={key} className="flex items-center">
-                  <button
-                    onClick={() => handleDatasetSwitch(key as keyof typeof SAMPLE_DATASETS)}
-                    className={`px-3.5 py-1.5 rounded-l-lg text-xs font-mono font-medium border flex items-center gap-1.5 transition-all duration-150 ${
-                      isActive
-                        ? 'bg-blue-600 text-white border-blue-400 shadow-md shadow-blue-600/30 font-semibold'
-                        : 'bg-slate-950 hover:bg-slate-800 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white'
-                    }`}
-                  >
-                    {isActive && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
-                    {item.name}
-                  </button>
-                  <button
-                    onClick={() => setInspectKey(key)}
-                    className={`px-2 py-1.5 rounded-r-lg border-y border-r text-xs transition-colors ${
-                      isActive 
-                        ? 'bg-blue-700 hover:bg-blue-800 text-blue-100 border-blue-400' 
-                        : 'bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border-slate-800'
-                    }`}
-                    title={`View SQL query and schema behind ${item.name}`}
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              );
-            })}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="md:col-span-2">
+          {/* Dynamic Interactive Preset Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-900 border border-slate-800 rounded-xl shadow-lg h-full">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs text-slate-400 font-mono flex items-center gap-1.5 px-1 font-medium">
+                <Database className="w-4 h-4 text-blue-400" />
+                Preset:
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(SAMPLE_DATASETS).map(([key, item]) => {
+                  const isActive = activeDatasetKey === key;
+                  return (
+                    <div key={key} className="flex items-center">
+                      <button
+                        onClick={() => handleDatasetSwitch(key as keyof typeof SAMPLE_DATASETS)}
+                        className={`px-3 py-1.5 rounded-l-lg text-xs font-mono font-medium border flex items-center gap-1 transition-all ${
+                          isActive
+                            ? 'bg-blue-600 text-white border-blue-400 font-semibold'
+                            : 'bg-slate-950 hover:bg-slate-800 text-slate-300 border-slate-800'
+                        }`}
+                      >
+                        {isActive && <Check className="w-3.5 h-3.5 text-white stroke-[3]" />}
+                        {item.name}
+                      </button>
+                      <button
+                        onClick={() => setInspectKey(key)}
+                        className={`px-2 py-1.5 rounded-r-lg border-y border-r text-xs transition-colors ${
+                          isActive 
+                            ? 'bg-blue-700 hover:bg-blue-800 text-blue-100 border-blue-400' 
+                            : 'bg-slate-900 hover:bg-slate-800 text-slate-400 border-slate-800'
+                        }`}
+                        title="Inspect Schema SQL"
+                      >
+                        <Eye className="w-3 h-3" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
 
-        <button
-          onClick={() => setInspectKey(activeDatasetKey)}
-          className="text-xs font-mono px-3 py-1.5 bg-slate-950 hover:bg-slate-800 text-indigo-300 border border-indigo-900/60 hover:border-indigo-500 rounded-lg flex items-center gap-1.5 transition-all"
-        >
-          <Eye className="w-3.5 h-3.5 text-indigo-400" />
-          <span>View Active SQL Source Code</span>
-        </button>
+        <div className="md:col-span-1">
+          <DataUploader />
+        </div>
       </div>
 
       <AgentCopilot />
+      <DataQualityAudit />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
