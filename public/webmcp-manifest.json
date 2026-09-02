@@ -1,0 +1,18 @@
+{
+  "name": "OmniData WebMCP",
+  "description": "Agent-native analytics workspace powered by DuckDB WASM",
+  "tools": [
+    {
+      "name": "run_sql_query",
+      "description": "Execute analytical SQL queries on client-side DuckDB table 'dataset'"
+    },
+    {
+      "name": "render_chart",
+      "description": "Render interactive charts (bar, line, pie, scatter) on dashboard canvas"
+    },
+    {
+      "name": "apply_dataset_filter",
+      "description": "Filter in-memory dataset grid view by column and value"
+    }
+  ]
+}
