@@ -29,15 +29,6 @@ export async function executeDuckDBQuery(sql: string): Promise<Record<string, an
   return result.toArray().map((row) => row.toJSON());
 }
 
-export async function loadCsvToDuckDB(csvUrl: string, tableName: string = 'dataset') {
-  const { db, conn } = await initDuckDB();
-  const res = await fetch(csvUrl);
-  const text = await res.text();
-  
-  await db.registerFileText(`${tableName}.csv`, text);
-  await conn.insertCSVFromPath(`${tableName}.csv`, { name: tableName, detect: true, header: true });
-}
-
 export async function loadFileToDuckDB(file: File, tableName: string = 'dataset') {
   const { db, conn } = await initDuckDB();
   const buffer = await file.arrayBuffer();
@@ -58,4 +49,12 @@ export async function getTableSchema(tableName: string = 'dataset') {
 
 export async function getDatasetSummary(tableName: string = 'dataset') {
   return await executeDuckDBQuery(`SUMMARIZE ${tableName}`);
+}
+
+export async function exportDatasetCsv(tableName: string = 'dataset'): Promise<string> {
+  const rows = await executeDuckDBQuery(`SELECT * FROM ${tableName}`);
+  if (!rows.length) return '';
+  const headers = Object.keys(rows[0]).join(',');
+  const csvRows = rows.map((r) => Object.values(r).map((v) => `"${v}"`).join(','));
+  return [headers, ...csvRows].join('\n');
 }

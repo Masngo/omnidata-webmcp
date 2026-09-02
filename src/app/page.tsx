@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Header from '../components/Header';
+import AgentCopilot from '../components/AgentCopilot';
 import ChartCanvas from '../components/ChartCanvas';
 import DataGrid from '../components/DataGrid';
 import SqlConsole from '../components/SqlConsole';
@@ -119,6 +120,8 @@ export default function Page() {
           <span>View Active SQL Source Code</span>
         </button>
       </div>
+
+      <AgentCopilot />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">

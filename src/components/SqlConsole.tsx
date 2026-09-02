@@ -1,15 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Play, Sparkles, Terminal } from 'lucide-react';
-import { executeDuckDBQuery } from '../lib/duckdb';
+import { Play, Sparkles, Terminal, Download } from 'lucide-react';
+import { executeDuckDBQuery, exportDatasetCsv } from '../lib/duckdb';
 import { useAppStore } from '../lib/store';
 
 const QUERY_PRESETS = [
-  { label: 'Category Summary', query: 'SELECT category, SUM(sales) as total_sales, AVG(quantity) as avg_qty FROM dataset GROUP BY category ORDER BY total_sales DESC;' },
-  { label: 'Regional Breakdown', query: 'SELECT region, COUNT(*) as record_count, SUM(sales) as revenue FROM dataset GROUP BY region;' },
-  { label: 'Monthly Trend', query: 'SELECT strftime(date, \'%Y-%m\') as month, SUM(sales) as monthly_revenue FROM dataset GROUP BY month ORDER BY month;' },
-  { label: 'Top 5 High Value', query: 'SELECT * FROM dataset ORDER BY sales DESC LIMIT 5;' }
+  { label: 'Category Sales', query: 'SELECT category, SUM(sales) as total_sales, AVG(quantity) as avg_qty FROM dataset GROUP BY category ORDER BY total_sales DESC;' },
+  { label: 'Running Revenue Total', query: 'SELECT date, sales, SUM(sales) OVER (ORDER BY date) as cumulative_revenue FROM dataset ORDER BY date LIMIT 15;' },
+  { label: 'Z-Score Anomaly Detection', query: 'SELECT id, category, sales, round((sales - AVG(sales) OVER()) / STDDEV_SAMP(sales) OVER(), 2) as z_score FROM dataset ORDER BY z_score DESC LIMIT 10;' },
+  { label: 'Percentile Rank', query: 'SELECT category, sales, PERCENT_RANK() OVER (ORDER BY sales) as sales_percentile FROM dataset ORDER BY sales DESC LIMIT 10;' }
 ];
 
 export default function SqlConsole() {
@@ -33,7 +33,7 @@ export default function SqlConsole() {
       addLog({
         toolName: 'manual_sql_console',
         status: 'success',
-        message: `Executed custom SQL in ${duration}ms (${results.length} rows)`
+        message: `Executed DuckDB SQL in ${duration}ms (${results.length} rows)`
       });
     } catch (err: any) {
       addLog({
@@ -46,18 +46,39 @@ export default function SqlConsole() {
     }
   };
 
+  const handleCsvExport = async () => {
+    const csvContent = await exportDatasetCsv('dataset');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'omnidata-export.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl shadow-lg flex flex-col gap-3">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
           <Terminal className="w-4 h-4 text-indigo-400" />
-          <h3 className="text-sm font-semibold text-slate-200">Interactive SQL Workbench</h3>
+          <h3 className="text-sm font-semibold text-slate-200">DuckDB SQL Workbench & Window Functions</h3>
         </div>
-        {executionTime !== null && (
-          <span className="text-xs font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800">
-            {executionTime}ms
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {executionTime !== null && (
+            <span className="text-xs font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800">
+              {executionTime}ms
+            </span>
+          )}
+          <button
+            onClick={handleCsvExport}
+            className="text-xs font-mono px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-1 transition-colors"
+            title="Export query view to CSV"
+          >
+            <Download className="w-3 h-3 text-blue-400" />
+            Export CSV
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-1.5">
