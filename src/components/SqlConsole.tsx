@@ -1,24 +1,39 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Play } from 'lucide-react';
+import { Play, Sparkles, Terminal } from 'lucide-react';
 import { executeDuckDBQuery } from '../lib/duckdb';
 import { useAppStore } from '../lib/store';
 
+const QUERY_PRESETS = [
+  { label: 'Category Summary', query: 'SELECT category, SUM(sales) as total_sales, AVG(quantity) as avg_qty FROM dataset GROUP BY category ORDER BY total_sales DESC;' },
+  { label: 'Regional Breakdown', query: 'SELECT region, COUNT(*) as record_count, SUM(sales) as revenue FROM dataset GROUP BY region;' },
+  { label: 'Monthly Trend', query: 'SELECT strftime(date, \'%Y-%m\') as month, SUM(sales) as monthly_revenue FROM dataset GROUP BY month ORDER BY month;' },
+  { label: 'Top 5 High Value', query: 'SELECT * FROM dataset ORDER BY sales DESC LIMIT 5;' }
+];
+
 export default function SqlConsole() {
-  const [query, setQuery] = useState('SELECT category, SUM(sales) as total_sales FROM dataset GROUP BY category');
-  const [loading, setLoading] = useState(false);
+  const [query, setQuery] = useState(QUERY_PRESETS[0].query);
+  const [executing, setExecuting] = useState(false);
+  const [executionTime, setExecutionTime] = useState<number | null>(null);
+  const setDataset = useAppStore((state) => state.setDataset);
   const addLog = useAppStore((state) => state.addLog);
 
-  const handleExecute = async () => {
-    if (!query.trim()) return;
-    setLoading(true);
+  const handleRunQuery = async (sqlToRun?: string) => {
+    const activeSql = sqlToRun || query;
+    if (!activeSql.trim()) return;
+
+    setExecuting(true);
+    const start = performance.now();
     try {
-      const results = await executeDuckDBQuery(query);
+      const results = await executeDuckDBQuery(activeSql);
+      const duration = Math.round(performance.now() - start);
+      setExecutionTime(duration);
+      setDataset(results);
       addLog({
         toolName: 'manual_sql_console',
         status: 'success',
-        message: `Query returned ${results.length} rows`
+        message: `Executed custom SQL in ${duration}ms (${results.length} rows)`
       });
     } catch (err: any) {
       addLog({
@@ -27,30 +42,57 @@ export default function SqlConsole() {
         message: err.message
       });
     } finally {
-      setLoading(false);
+      setExecuting(false);
     }
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+    <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl shadow-lg flex flex-col gap-3">
       <div className="flex justify-between items-center">
-        <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">Manual SQL Override Console</label>
-        <button
-          onClick={handleExecute}
-          disabled={loading}
-          className="px-3 py-1 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 text-white text-xs font-medium rounded-lg flex items-center gap-1.5 transition-colors"
-        >
-          <Play className="w-3.5 h-3.5 fill-current" />
-          {loading ? 'Running...' : 'Run Query'}
-        </button>
+        <div className="flex items-center gap-2">
+          <Terminal className="w-4 h-4 text-indigo-400" />
+          <h3 className="text-sm font-semibold text-slate-200">Interactive SQL Workbench</h3>
+        </div>
+        {executionTime !== null && (
+          <span className="text-xs font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800">
+            {executionTime}ms
+          </span>
+        )}
       </div>
 
-      <textarea
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        rows={2}
-        className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs font-mono text-blue-300 focus:outline-none focus:border-blue-500"
-      />
+      <div className="flex flex-wrap gap-1.5">
+        {QUERY_PRESETS.map((preset, idx) => (
+          <button
+            key={idx}
+            onClick={() => {
+              setQuery(preset.query);
+              handleRunQuery(preset.query);
+            }}
+            className="text-xs font-mono px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/80 flex items-center gap-1 transition-colors"
+          >
+            <Sparkles className="w-3 h-3 text-amber-400" />
+            {preset.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="relative">
+        <textarea
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          rows={3}
+          className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs font-mono text-indigo-300 focus:outline-none focus:border-indigo-500 transition-colors resize-none"
+          placeholder="Enter DuckDB SQL query..."
+        />
+        <button
+          onClick={() => handleRunQuery()}
+          disabled={executing}
+          className="absolute bottom-3 right-3 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-mono text-xs rounded-md shadow flex items-center gap-1.5 transition-colors disabled:opacity-50"
+        >
+          <Play className="w-3 h-3 fill-current" />
+          {executing ? 'Running...' : 'Run Query'}
+        </button>
+      </div>
     </div>
   );
 }
