@@ -37,3 +37,25 @@ export async function loadCsvToDuckDB(csvUrl: string, tableName: string = 'datas
   await db.registerFileText(`${tableName}.csv`, text);
   await conn.insertCSVFromPath(`${tableName}.csv`, { name: tableName, detect: true, header: true });
 }
+
+export async function loadFileToDuckDB(file: File, tableName: string = 'dataset') {
+  const { db, conn } = await initDuckDB();
+  const buffer = await file.arrayBuffer();
+  const Uint8ArrayData = new Uint8Array(buffer);
+
+  await db.registerFileBuffer(file.name, Uint8ArrayData);
+  
+  if (file.name.endsWith('.json')) {
+    await conn.query(`CREATE TABLE ${tableName} AS SELECT * FROM read_json_auto('${file.name}')`);
+  } else {
+    await conn.insertCSVFromPath(file.name, { name: tableName, detect: true, header: true });
+  }
+}
+
+export async function getTableSchema(tableName: string = 'dataset') {
+  return await executeDuckDBQuery(`PRAGMA table_info('${tableName}')`);
+}
+
+export async function getDatasetSummary(tableName: string = 'dataset') {
+  return await executeDuckDBQuery(`SUMMARIZE ${tableName}`);
+}

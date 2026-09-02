@@ -1,10 +1,10 @@
 'use client';
 
 import React from 'react';
-import { ResponsiveContainer, BarChart, Bar, LineChart, Line, PieChart, Pie, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, LineChart, Line, PieChart, Pie, XAxis, YAxis, Tooltip, CartesianGrid, Cell, Legend } from 'recharts';
 import { useAppStore } from '../lib/store';
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+const PALETTE = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
 export default function ChartCanvas() {
   const activeChart = useAppStore((state) => state.activeChart);
@@ -12,15 +12,26 @@ export default function ChartCanvas() {
   if (!activeChart) {
     return (
       <div className="h-72 flex flex-col items-center justify-center border-2 border-dashed border-slate-800 rounded-xl bg-slate-900/40 text-slate-400 p-6 text-center">
-        <p className="text-sm font-medium text-slate-300">No Active Chart Visualized</p>
+        <p className="text-sm font-medium text-slate-300">No Active Visual Analytics Canvas</p>
         <p className="text-xs text-slate-500 mt-1 max-w-md">
-          Instruct your WebMCP AI agent to execute a SQL query and invoke the <code className="text-blue-400 font-mono">render_chart</code> tool.
+          Ask your WebMCP AI agent to inspect <code className="text-blue-400 font-mono">get_table_schema</code>, execute queries, and invoke <code className="text-blue-400 font-mono">render_chart</code>.
         </p>
       </div>
     );
   }
 
-  const { chartType, title, xAxisKey, yAxisKey, data } = activeChart;
+  const { chartType, title, xAxisKey, yAxisKeys, data } = activeChart;
+
+  const normalizedKeys = yAxisKeys.map((item, idx) => {
+    if (typeof item === 'string') {
+      return { key: item, color: PALETTE[idx % PALETTE.length], name: item };
+    }
+    return {
+      key: item.key,
+      color: item.color || PALETTE[idx % PALETTE.length],
+      name: item.name || item.key
+    };
+  });
 
   return (
     <div className="p-5 bg-slate-900 border border-slate-800 rounded-xl shadow-lg">
@@ -38,14 +49,18 @@ export default function ChartCanvas() {
               <XAxis dataKey={xAxisKey} stroke="#94a3b8" />
               <YAxis stroke="#94a3b8" />
               <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#475569', color: '#f8fafc' }} />
-              <Line type="monotone" dataKey={yAxisKey} stroke="#3b82f6" strokeWidth={2.5} />
+              <Legend />
+              {normalizedKeys.map((s) => (
+                <Line key={s.key} type="monotone" dataKey={s.key} name={s.name} stroke={s.color} strokeWidth={2.5} />
+              ))}
             </LineChart>
           ) : chartType === 'pie' ? (
             <PieChart>
               <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#475569', color: '#f8fafc' }} />
-              <Pie data={data} dataKey={yAxisKey} nameKey={xAxisKey} cx="50%" cy="50%" outerRadius={90} fill="#8884d8" label>
+              <Legend />
+              <Pie data={data} dataKey={normalizedKeys[0]?.key} nameKey={xAxisKey} cx="50%" cy="50%" outerRadius={90} label>
                 {data.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell key={`cell-${index}`} fill={PALETTE[index % PALETTE.length]} />
                 ))}
               </Pie>
             </PieChart>
@@ -55,7 +70,10 @@ export default function ChartCanvas() {
               <XAxis dataKey={xAxisKey} stroke="#94a3b8" />
               <YAxis stroke="#94a3b8" />
               <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#475569', color: '#f8fafc' }} />
-              <Bar dataKey={yAxisKey} fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              <Legend />
+              {normalizedKeys.map((s) => (
+                <Bar key={s.key} dataKey={s.key} name={s.name} fill={s.color} radius={[4, 4, 0, 0]} />
+              ))}
             </BarChart>
           )}
         </ResponsiveContainer>
