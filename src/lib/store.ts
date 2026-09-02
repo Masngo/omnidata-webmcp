@@ -19,8 +19,7 @@ export interface AuditResult {
 
 export interface Preset {
   id: string;
-  name: string;
-  description: string;
+  title: string;
   chartType: 'bar' | 'line' | 'area' | 'pie';
   xAxisKey: string;
   yAxisKey: string;
@@ -29,63 +28,45 @@ export interface Preset {
 
 export const DATASET_PRESETS: Preset[] = [
   {
-    id: 'sales-growth',
-    name: '🚀 Sales Performance',
-    description: 'Revenue & active user conversion metrics',
+    id: 'ecommerce-sales',
+    title: 'E-Commerce Sales',
     chartType: 'bar',
     xAxisKey: 'category',
     yAxisKey: 'revenue',
     data: [
-      { category: 'Alpha', revenue: 4500, users: 120, conversion: 3.2 },
-      { category: 'Beta', revenue: 7800, users: 290, conversion: 4.8 },
-      { category: 'Gamma', revenue: 3200, users: 95, conversion: 2.1 },
-      { category: 'Delta', revenue: 9100, users: 410, conversion: 5.6 },
-      { category: 'Epsilon', revenue: 6400, users: 210, conversion: 3.9 }
+      { category: 'Electronics', revenue: 14500, orders: 320, conversion: 3.4 },
+      { category: 'Apparel', revenue: 9800, orders: 490, conversion: 4.8 },
+      { category: 'Home Goods', revenue: 6200, orders: 195, conversion: 2.1 },
+      { category: 'Beauty', revenue: 11100, orders: 610, conversion: 5.6 },
+      { category: 'Sports', revenue: 8400, orders: 280, conversion: 3.9 }
     ]
   },
   {
-    id: 'saas-mrr',
-    name: '📈 SaaS MRR Growth',
-    description: 'Monthly recurring revenue and subscriber count',
+    id: 'saas-user-metrics',
+    title: 'SaaS User Metrics',
     chartType: 'line',
     xAxisKey: 'month',
     yAxisKey: 'mrr',
     data: [
-      { month: 'Jan', mrr: 12000, churn: 2.1, subscribers: 450 },
-      { month: 'Feb', mrr: 15400, churn: 1.8, subscribers: 580 },
-      { month: 'Mar', mrr: 18900, churn: 1.5, subscribers: 720 },
-      { month: 'Apr', mrr: 24500, churn: 1.2, subscribers: 940 },
-      { month: 'May', mrr: 31000, churn: 0.9, subscribers: 1210 }
+      { month: 'Jan', mrr: 12000, activeUsers: 1450, churnRate: 2.1 },
+      { month: 'Feb', mrr: 15400, activeUsers: 1880, churnRate: 1.8 },
+      { month: 'Mar', mrr: 18900, activeUsers: 2420, churnRate: 1.5 },
+      { month: 'Apr', mrr: 24500, activeUsers: 3140, churnRate: 1.2 },
+      { month: 'May', mrr: 31000, activeUsers: 4210, churnRate: 0.9 }
     ]
   },
   {
-    id: 'cloud-latency',
-    name: '⚡ Infrastructure Health',
-    description: 'API response latency and service error rates',
+    id: 'server-infrastructure-logs',
+    title: 'Server Infrastructure Logs',
     chartType: 'area',
-    xAxisKey: 'service',
+    xAxisKey: 'node',
     yAxisKey: 'latencyMs',
     data: [
-      { service: 'Auth-API', latencyMs: 45, errorRate: 0.02, throughput: 1200 },
-      { service: 'Database', latencyMs: 120, errorRate: 0.15, throughput: 3400 },
-      { service: 'Search-Engine', latencyMs: 85, errorRate: 0.05, throughput: 2100 },
-      { service: 'CDN-Edge', latencyMs: 15, errorRate: 0.01, throughput: 8900 },
-      { service: 'Payments', latencyMs: 210, errorRate: 0.08, throughput: 650 }
-    ]
-  },
-  {
-    id: 'traffic-sources',
-    name: '🎯 Traffic Distribution',
-    description: 'User breakdown by acquisition channel',
-    chartType: 'pie',
-    xAxisKey: 'channel',
-    yAxisKey: 'sessions',
-    data: [
-      { channel: 'Direct', sessions: 8500, bounceRate: 24 },
-      { channel: 'Organic Search', sessions: 14200, bounceRate: 31 },
-      { channel: 'Referral', sessions: 6300, bounceRate: 18 },
-      { channel: 'Paid Ads', sessions: 9800, bounceRate: 42 },
-      { channel: 'Social', sessions: 4100, bounceRate: 55 }
+      { node: 'us-east-1', latencyMs: 24, cpuLoad: 45, errorCount: 2 },
+      { node: 'us-west-2', latencyMs: 38, cpuLoad: 68, errorCount: 5 },
+      { node: 'eu-central-1', latencyMs: 82, cpuLoad: 72, errorCount: 12 },
+      { node: 'ap-southeast-1', latencyMs: 110, cpuLoad: 89, errorCount: 18 },
+      { node: 'sa-east-1', latencyMs: 145, cpuLoad: 91, errorCount: 22 }
     ]
   }
 ];
@@ -117,7 +98,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   dataset: DATASET_PRESETS[0].data,
   filteredData: null,
   activeChart: {
-    title: DATASET_PRESETS[0].name,
+    title: DATASET_PRESETS[0].title,
     chartType: DATASET_PRESETS[0].chartType,
     xAxisKey: DATASET_PRESETS[0].xAxisKey,
     yAxisKeys: [DATASET_PRESETS[0].yAxisKey],
@@ -142,7 +123,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       auditResults: null,
       auditHealthScore: null,
       activeChart: {
-        title: preset.name,
+        title: preset.title,
         chartType: preset.chartType,
         xAxisKey: preset.xAxisKey,
         yAxisKeys: [preset.yAxisKey],
@@ -153,7 +134,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     get().addLog({
       toolName: 'preset_manager',
       status: 'info',
-      message: `Loaded preset: "${preset.name}" (${preset.data.length} records)`
+      message: `Switched preset to: "${preset.title}"`
     });
   },
 
@@ -230,7 +211,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     get().addLog({
       toolName: 'audit_engine',
       status: 'success',
-      message: `Audit completed successfully. Overall score: ${avgCompleteness}%`
+      message: `Audit completed successfully. Score: ${avgCompleteness}%`
     });
   }
 }));
