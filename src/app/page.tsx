@@ -5,6 +5,7 @@ import PresetSelector from '../components/PresetSelector';
 import ChartCanvas from '../components/ChartCanvas';
 import AuditPanel from '../components/AuditPanel';
 import DataGrid from '../components/DataGrid';
+import WebMCPProvider from '../components/WebMCPProvider';
 import { useAppStore } from '../lib/store';
 import { Terminal, Activity } from 'lucide-react';
 
@@ -22,7 +23,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#020617] text-slate-100 p-6 space-y-6 font-sans">
-      {/* Header */}
+      <WebMCPProvider />
       <header className="flex items-center justify-between border-b border-slate-800 pb-4">
         <div>
           <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
@@ -38,10 +39,8 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Preset Bar */}
       <PresetSelector />
 
-      {/* Main Grid Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <ChartCanvas />
@@ -49,8 +48,6 @@ export default function Home() {
         </div>
         <div className="space-y-6">
           <AuditPanel />
-
-          {/* System Console Logs */}
           <div className="p-4 bg-slate-900 border border-slate-800 rounded-xl shadow-xl space-y-3 font-mono text-xs">
             <div className="flex items-center gap-2 text-slate-300 border-b border-slate-800 pb-2 font-bold">
               <Terminal className="w-4 h-4 text-indigo-400" />
