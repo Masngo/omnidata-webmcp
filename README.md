@@ -1,4 +1,3 @@
-cat << 'EOF' > README.md
 # OmniData WebMCP
 
 > **Agent-Native In-Browser Analytics Workspace**  
